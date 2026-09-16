@@ -1,0 +1,399 @@
+/* Online friend counter (server list) */
+.vc-friendnotif-online-counter {
+    all: unset;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    padding: 2px 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--text-default);
+    cursor: pointer;
+}
+
+.vc-friendnotif-online-counter:hover {
+    color: var(--text-strong, var(--text-default));
+}
+
+/* Status indicators */
+.vc-friendnotif-status-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.vc-friendnotif-status-mobile {
+    flex-shrink: 0;
+}
+
+/* Vencord notification body */
+.vc-friendnotif-toast {
+    margin-top: 0.5rem;
+    line-height: 140%;
+}
+
+.vc-friendnotif-toast-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vc-friendnotif-toast-time {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Settings layout */
+.vc-friendnotif-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.vc-friendnotif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vc-friendnotif-legend p {
+    margin: 0 0 4px;
+}
+
+.vc-friendnotif-legend-tag {
+    padding: 0 4px;
+    border-radius: 3px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.vc-friendnotif-legend-toast {
+    background-color: var(--brand-500);
+}
+
+.vc-friendnotif-legend-desktop {
+    background-color: #23a55a;
+}
+
+/* User table */
+.vc-friendnotif-table {
+    --vc-friendnotif-columns: minmax(140px, 1fr) repeat(12, 34px) 24px;
+
+    display: flex;
+    flex-direction: column;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.vc-friendnotif-row {
+    display: grid;
+    grid-template-columns: var(--vc-friendnotif-columns);
+    align-items: center;
+    min-width: max-content;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border-subtle, var(--background-modifier-accent));
+}
+
+.vc-friendnotif-row:last-child {
+    border-bottom: none;
+}
+
+.vc-friendnotif-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--background-base-low, var(--background-secondary));
+}
+
+.vc-friendnotif-header-cell {
+    all: unset;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 4px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.vc-friendnotif-header-cell:hover {
+    color: var(--text-default);
+}
+
+.vc-friendnotif-header-user {
+    text-align: left;
+    padding-left: 4px;
+}
+
+.vc-friendnotif-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding-right: 6px;
+}
+
+.vc-friendnotif-avatar-button {
+    all: unset;
+    position: relative;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.vc-friendnotif-avatar {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vc-friendnotif-avatar-unknown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-modifier-accent);
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.vc-friendnotif-avatar-status {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    box-shadow: 0 0 0 2px var(--background-base-low, var(--background-secondary));
+}
+
+.vc-friendnotif-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vc-friendnotif-cell {
+    all: unset;
+    display: block;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+    border: 2px solid var(--interactive-normal, #80848e);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.vc-friendnotif-cell:hover {
+    transform: scale(1.15);
+}
+
+.vc-friendnotif-cell-toast {
+    border-color: var(--brand-500);
+    background-color: var(--brand-500);
+}
+
+.vc-friendnotif-cell-desktop {
+    border-color: #23a55a;
+    background-color: #23a55a;
+}
+
+.vc-friendnotif-row-disabled .vc-friendnotif-user,
+.vc-friendnotif-row-disabled .vc-friendnotif-cell {
+    opacity: 0.4;
+}
+
+.vc-friendnotif-remove {
+    display: flex;
+    justify-content: center;
+}
+
+.vc-friendnotif-remove-button {
+    all: unset;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.vc-friendnotif-remove-button:hover {
+    color: var(--text-feedback-critical, var(--status-danger));
+    background-color: var(--background-modifier-hover);
+}
+
+.vc-friendnotif-empty {
+    padding: 8px 0;
+}
+
+.vc-friendnotif-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.vc-friendnotif-add-stranger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.vc-friendnotif-add-stranger > :first-child {
+    flex: 1;
+}
+
+/* Messages */
+.vc-friendnotif-placeholders {
+    margin: 0 0 12px;
+    padding-left: 20px;
+    color: var(--text-default);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.vc-friendnotif-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vc-friendnotif-message-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Sounds */
+.vc-friendnotif-sound-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle, var(--background-modifier-accent));
+}
+
+.vc-friendnotif-sound-group:last-child {
+    border-bottom: none;
+}
+
+.vc-friendnotif-sound-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vc-friendnotif-sound-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.vc-friendnotif-sound-label {
+    width: 60px;
+    flex-shrink: 0;
+}
+
+.vc-friendnotif-sound-name {
+    flex: 1;
+    min-width: 80px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text-muted);
+}
+
+.vc-friendnotif-sound-mute {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.vc-friendnotif-sound-url {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 68px;
+}
+
+.vc-friendnotif-sound-url > :first-child {
+    flex: 1;
+}
+
+/* Tools */
+.vc-friendnotif-tools-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Timelog modal */
+.vc-friendnotif-timelog {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 8px;
+}
+
+.vc-friendnotif-timelog-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.vc-friendnotif-timelog-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-subtle, var(--background-modifier-accent));
+    color: var(--text-default);
+    font-size: 0.875rem;
+}
+
+.vc-friendnotif-timelog-row:last-child {
+    border-bottom: none;
+}
+
+.vc-friendnotif-timelog-time {
+    flex: 0 0 auto;
+    min-width: 150px;
+    color: var(--text-muted);
+}
+
+.vc-friendnotif-timelog-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.vc-friendnotif-timelog-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vc-friendnotif-timelog-empty {
+    padding: 16px 0;
+    text-align: center;
+}
