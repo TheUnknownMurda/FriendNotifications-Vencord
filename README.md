@@ -97,6 +97,9 @@ sont conservés.
   qui décide Toast ou Desktop (la version BD utilisait celle du statut de base).
 - **Statut personnalisé** : suivi indépendamment de l'activité principale (la
   version BD ne le voyait pas quand l'utilisateur jouait en même temps).
+- **Changement de chanson** : notifié même si la personne reste en écoute (la
+  version BD ne prévenait qu'au démarrage de l'écoute). Les changements de jeu
+  en cours de partie restent silencieux, comme dans la version BD.
 - **Clic sur une notification de partage d'écran** : navigue vers le salon
   vocal au lieu de le rejoindre automatiquement.
 - **Format de date** : une chaîne de format moment.js (`DD/MM/YYYY HH:mm:ss`)

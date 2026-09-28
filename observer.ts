@@ -133,7 +133,11 @@ export function detectChange(config: UserConfig, prev: PresenceSnapshot, next: P
     }
 
     for (const special of SPECIAL_KINDS) {
-        if (config[special] && next[special] && prev[special] !== next[special]) return special;
+        if (!config[special] || !next[special]) continue;
+        // Just started doing it...
+        if (prev[special] !== next[special]) return special;
+        // ...or, for music, moved on to another song while still listening
+        if (special === "listening" && !sameActivity(prev.activity, next.activity)) return special;
     }
 
     if (config.mobile && prev.mobile !== next.mobile) return statusKind;
