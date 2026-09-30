@@ -5,15 +5,20 @@ Portage pour **Vencord** du plugin BetterDiscord *FriendNotifications* de DevilB
 choisissez d'observer — change de statut, se met à jouer, écouter, streamer,
 partager son écran, ou change son statut personnalisé.
 
-![Réglages par utilisateur](assets/user-settings.png)
+![Toast notification](assets/toast.png)
 
-*Un réglage par utilisateur et par événement : clic = notification Toast (bleu),
-clic droit = notification bureau (vert). Les utilisateurs affichés ici sont fictifs.*
+*A status change as it appears in Discord: an in-app toast tinted with the colour
+of the new status. Desktop notifications are available too, per user and per event.*
 
-![Journal des connexions](assets/timelog.png)
+![Per-user settings](assets/user-settings.png)
 
-*Le journal, conservé d'une session à l'autre : horodatage, statut et message de
-chaque changement, avec recherche et pagination.*
+*One setting per user and per event: click for a toast (blue), right-click for a
+desktop notification (green). The users shown here are fictitious.*
+
+![Timelog](assets/timelog.png)
+
+*The timelog, kept across restarts: timestamp, status and message for every
+change, with search and pagination.*
 
 ## Fonctionnalités
 
