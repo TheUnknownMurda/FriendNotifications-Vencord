@@ -5,6 +5,16 @@ Portage pour **Vencord** du plugin BetterDiscord *FriendNotifications* de DevilB
 choisissez d'observer — change de statut, se met à jouer, écouter, streamer,
 partager son écran, ou change son statut personnalisé.
 
+![Réglages par utilisateur](assets/user-settings.png)
+
+*Un réglage par utilisateur et par événement : clic = notification Toast (bleu),
+clic droit = notification bureau (vert). Les utilisateurs affichés ici sont fictifs.*
+
+![Journal des connexions](assets/timelog.png)
+
+*Le journal, conservé d'une session à l'autre : horodatage, statut et message de
+chaque changement, avec recherche et pagination.*
+
 ## Fonctionnalités
 
 - Notifications **Toast** (notification Vencord dans l'appli) ou **Desktop**
