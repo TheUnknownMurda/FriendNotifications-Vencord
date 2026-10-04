@@ -10,9 +10,9 @@ import { Logger } from "@utils/Logger";
 import type { User } from "@vencord/discord-types";
 import { Constants, FluxDispatcher, RelationshipStore, RestAPI, UserProfileStore, UserStore } from "@webpack/common";
 
-import { DATASTORE_PREFIX, Field, FIELD_LABELS, FIELDS, IMAGE_FIELDS, PLUGIN_NAME, Snapshot } from "./constants";
+import { DATASTORE_PREFIX, Field, FIELD_LABELS, FIELDS, IMAGE_FIELDS, PLUGIN_NAME, PROFILE_FIELDS, Snapshot } from "./constants";
 import { addHistoryEntries, HistoryEntry, openHistory } from "./history";
-import { getRefreshDelayMs, isIgnored, isTracked, settings } from "./settings";
+import { getRefreshDelayMs, isTracked, settings, shouldNotify } from "./settings";
 import { getImageUrl, truncate } from "./ui";
 
 const logger = new Logger(PLUGIN_NAME);
@@ -104,11 +104,11 @@ function report(changed: [userId: string, changes: Change[]][]) {
         const name = RelationshipStore.getNickname(userId) || user.globalName || user.username;
         const avatar = user.getAvatarURL(undefined, 64, false);
         entries.push(...changes.map((change): HistoryEntry => ({ userId, name, avatar, timestamp, ...change })));
-        toNotify.push([user, name, avatar, changes]);
+        if (shouldNotify(userId)) toNotify.push([user, name, avatar, changes]);
     }
 
     addHistoryEntries(entries);
-    if (!settings.store.notify || !toNotify.length) return;
+    if (!toNotify.length) return;
 
     if (toNotify.length > MAX_NOTIFICATIONS_PER_SCAN) {
         showNotification({
@@ -149,14 +149,15 @@ function scan() {
             if (oldValue === newValue) continue;
 
             updated = true;
-            // The first value we ever see is only remembered, it is not a change
-            if (oldValue !== undefined && isTracked(field)) changes.push({ field, oldValue, newValue });
+            // The first value we ever see is only remembered, it is not a change.
+            // Untracked fields are remembered too, so turning them back on does not report an old change.
+            if (oldValue !== undefined && isTracked(userId, field)) changes.push({ field, oldValue, newValue });
         }
 
         if (!updated) continue;
         snapshots[userId] = { ...previous, ...current };
         dirty = true;
-        if (changes.length && !isIgnored(userId)) changed.push([userId, changes]);
+        if (changes.length) changed.push([userId, changes]);
     }
 
     if (dirty) saveSnapshots();
@@ -174,11 +175,19 @@ export function scheduleScan() {
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let refreshQueue: string[] = [];
 
+/** Only friends with at least one tracked field that needs the full profile are loaded */
+const needsProfile = (userId: string) => [...PROFILE_FIELDS].some(field => isTracked(userId, field));
+
 function nextFriendToRefresh() {
-    if (!refreshQueue.length) {
-        refreshQueue = RelationshipStore.getFriendIDs().filter(id => !isIgnored(id));
+    while (true) {
+        if (!refreshQueue.length) {
+            refreshQueue = RelationshipStore.getFriendIDs().filter(needsProfile);
+            if (!refreshQueue.length) return undefined;
+        }
+        const userId = refreshQueue.shift()!;
+        // Settings may have changed since the queue was built
+        if (RelationshipStore.isFriend(userId) && needsProfile(userId)) return userId;
     }
-    return refreshQueue.shift();
 }
 
 /** Loads a friend's full profile like opening their profile would, even if Discord has it cached */

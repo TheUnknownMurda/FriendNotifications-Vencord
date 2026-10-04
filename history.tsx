@@ -15,6 +15,7 @@ import type { RenderModalProps } from "@vencord/discord-types";
 import { Alerts, Modal, openModal, React, TextInput, useEffect, useReducer, useState } from "@webpack/common";
 
 import { DATASTORE_PREFIX, Field, FIELD_LABELS, FIELDS, IMAGE_FIELDS, PLUGIN_NAME } from "./constants";
+import { settings } from "./settings";
 import { cl, formatTimestamp, getImageUrl, parseColors } from "./ui";
 
 export interface HistoryEntry {
@@ -90,7 +91,7 @@ function clearHistory() {
     emit();
 }
 
-function useHistory() {
+export function useHistory() {
     const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
     useEffect(() => {
         listeners.add(forceUpdate);
@@ -137,7 +138,7 @@ function Value({ entry, value }: { entry: HistoryEntry; value: string; }) {
     return <span className={cl("text-value")}>{value}</span>;
 }
 
-function HistoryRow({ entry }: { entry: HistoryEntry; }) {
+function HistoryRow({ entry, isNew }: { entry: HistoryEntry; isNew: boolean; }) {
     return (
         <div className={cl("row")}>
             <div className={cl("row-header")}>
@@ -150,6 +151,7 @@ function HistoryRow({ entry }: { entry: HistoryEntry; }) {
                     <strong>{entry.name}</strong>
                 </button>
                 <span>changed their {FIELD_LABELS[entry.field]}</span>
+                {isNew && <span className={cl("new-badge")}>New</span>}
                 <span className={cl("row-time")}>{formatTimestamp(entry.timestamp)}</span>
             </div>
             <div className={cl("row-values")}>
@@ -166,7 +168,7 @@ function HistoryRow({ entry }: { entry: HistoryEntry; }) {
     );
 }
 
-function HistoryModal({ modalProps, userId }: { modalProps: RenderModalProps; userId?: string; }) {
+function HistoryModal({ modalProps, userId, seenBefore }: { modalProps: RenderModalProps; userId?: string; seenBefore: number; }) {
     const allEntries = useHistory();
     const [onlyUser, setOnlyUser] = useState(userId);
     const [query, setQuery] = useState("");
@@ -230,7 +232,7 @@ function HistoryModal({ modalProps, userId }: { modalProps: RenderModalProps; us
                     )
                     : (
                         <div className={cl("list")}>
-                            {visible.map(entry => <HistoryRow key={entryKey(entry)} entry={entry} />)}
+                            {visible.map(entry => <HistoryRow key={entryKey(entry)} entry={entry} isNew={entry.timestamp > seenBefore} />)}
                         </div>
                     )}
                 {pageCount > 1 && (
@@ -251,9 +253,13 @@ function HistoryModal({ modalProps, userId }: { modalProps: RenderModalProps; us
 
 /** Opens the history, optionally showing only one friend's changes */
 export function openHistory(userId?: string) {
+    // Everything logged so far is now seen, the rows newer than the previous visit get a "New" badge
+    const seenBefore = settings.store.lastSeen;
+    if (entries.length && entries[0].timestamp > seenBefore) settings.store.lastSeen = entries[0].timestamp;
+
     openModal(props => (
         <ErrorBoundary>
-            <HistoryModal modalProps={props} userId={userId} />
+            <HistoryModal modalProps={props} userId={userId} seenBefore={seenBefore} />
         </ErrorBoundary>
     ));
 }

@@ -1,14 +1,192 @@
+/* Top bar button */
+.vc-profilechanges-header-icon {
+    overflow: visible;
+}
+
+.vc-profilechanges-header-dot {
+    fill: var(--status-danger, #f23f43);
+}
+
 /* Settings */
-.vc-profilechanges-settings-section {
+.vc-profilechanges-history-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background-color: var(--background-base-lower, var(--background-secondary));
+}
+
+.vc-profilechanges-history-card p {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+}
+
+.vc-profilechanges-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 8px;
+    margin: 8px 0 16px;
 }
 
-.vc-profilechanges-settings-buttons {
+.vc-profilechanges-hint {
+    margin: 0 0 8px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.vc-profilechanges-friend-list {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Friend table */
+.vc-profilechanges-table {
+    --vc-profilechanges-columns: minmax(150px, 1fr) repeat(8, 54px) 24px;
+
+    display: flex;
+    flex-direction: column;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.vc-profilechanges-trow {
+    display: grid;
+    grid-template-columns: var(--vc-profilechanges-columns);
+    align-items: center;
+    min-width: max-content;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border-subtle, var(--background-modifier-accent));
+}
+
+.vc-profilechanges-trow:last-child {
+    border-bottom: none;
+}
+
+.vc-profilechanges-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--background-base-low, var(--background-secondary));
+}
+
+.vc-profilechanges-header-cell {
+    all: unset;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 4px 2px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.vc-profilechanges-header-cell:hover {
+    color: var(--text-default);
+}
+
+.vc-profilechanges-header-user {
+    text-align: left;
+    padding-left: 4px;
+}
+
+.vc-profilechanges-user {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    min-width: 0;
+    padding-right: 6px;
+}
+
+.vc-profilechanges-avatar-button {
+    all: unset;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.vc-profilechanges-avatar {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vc-profilechanges-avatar-unknown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-modifier-accent);
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.vc-profilechanges-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vc-profilechanges-cell {
+    all: unset;
+    display: block;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+    border: 2px solid var(--interactive-normal, #80848e);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.vc-profilechanges-cell:hover {
+    transform: scale(1.15);
+}
+
+.vc-profilechanges-cell-on {
+    border-color: var(--brand-500);
+    background-color: var(--brand-500);
+}
+
+.vc-profilechanges-trow-disabled .vc-profilechanges-user,
+.vc-profilechanges-trow-disabled .vc-profilechanges-cell {
+    opacity: 0.4;
+}
+
+.vc-profilechanges-reset {
+    display: flex;
+    justify-content: center;
+}
+
+.vc-profilechanges-reset-button {
+    all: unset;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.vc-profilechanges-reset-button:hover {
+    color: var(--text-default);
+    background-color: var(--background-modifier-hover);
+}
+
+.vc-profilechanges-empty {
+    padding: 8px 0;
 }
 
 /* History modal */
@@ -73,6 +251,16 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
+}
+
+.vc-profilechanges-new-badge {
+    padding: 0 6px;
+    border-radius: 8px;
+    background-color: var(--status-danger, #f23f43);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .vc-profilechanges-row-time {

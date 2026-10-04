@@ -5,37 +5,11 @@
  */
 
 import { definePluginSettings } from "@api/Settings";
-import { Button } from "@components/Button";
-import { Paragraph } from "@components/Paragraph";
 import { OptionType } from "@utils/types";
-import { React } from "@webpack/common";
 
-import type { Field } from "./constants";
-import { openHistory } from "./history";
+import { DEFAULT_FRIEND_CONFIG, DEFAULT_REFRESH_DELAY, Field, FriendConfig, REFRESH_DELAYS } from "./constants";
+import { FriendsSection, HistorySection } from "./SettingsSections";
 import { restartAutoRefresh } from "./tracker";
-import { cl } from "./ui";
-
-function HistorySection() {
-    const { ignored } = settings.use(["ignored"]);
-
-    return (
-        <div className={cl("settings-section")}>
-            <Paragraph>
-                The history is kept across restarts (last 1000 changes). It can also be opened by right-clicking a friend.
-            </Paragraph>
-            <div className={cl("settings-buttons")}>
-                <Button onClick={() => openHistory()}>Open history</Button>
-                <Button
-                    variant="secondary"
-                    disabled={ignored.length === 0}
-                    onClick={() => settings.store.ignored = []}
-                >
-                    Stop ignoring {ignored.length} friend{ignored.length === 1 ? "" : "s"}
-                </Button>
-            </div>
-        </div>
-    );
-}
 
 export const settings = definePluginSettings({
     history: {
@@ -44,97 +18,84 @@ export const settings = definePluginSettings({
     },
     notify: {
         type: OptionType.BOOLEAN,
-        description: "Shows a notification when a friend changes their profile (changes are always written to the history)",
+        displayName: "Notifications",
+        description: "Show a notification when a friend changes their profile. Every change is saved in the history either way.",
         default: true
     },
-    trackUsername: {
+    headerButton: {
         type: OptionType.BOOLEAN,
-        description: "Track username changes",
+        displayName: "Top bar button",
+        description: "Show a button at the top of Discord to open the history.",
         default: true
     },
-    trackGlobalName: {
-        type: OptionType.BOOLEAN,
-        description: "Track display name changes",
-        default: true
-    },
-    trackPronouns: {
-        type: OptionType.BOOLEAN,
-        description: "Track pronoun changes (needs the profile to be loaded, see the README)",
-        default: true
-    },
-    trackBio: {
-        type: OptionType.BOOLEAN,
-        description: "Track bio changes (needs the profile to be loaded, see the README)",
-        default: true
-    },
-    trackAvatar: {
-        type: OptionType.BOOLEAN,
-        description: "Track avatar changes",
-        default: true
-    },
-    trackBanner: {
-        type: OptionType.BOOLEAN,
-        description: "Track banner changes (needs the profile to be loaded, see the README)",
-        default: true
-    },
-    trackColors: {
-        type: OptionType.BOOLEAN,
-        description: "Track profile color changes (needs the profile to be loaded, see the README)",
-        default: true
+    friendList: {
+        type: OptionType.COMPONENT,
+        component: FriendsSection
     },
     autoRefresh: {
         type: OptionType.BOOLEAN,
-        description: "Regularly loads your friends' profiles in the background, one at a time, to catch bio, pronoun, banner and color changes. Off by default: this sends extra requests to Discord (see the README)",
+        displayName: "Background refresh",
+        description: "Load your friends' profiles one at a time in the background, so bio, pronoun, banner and color changes are caught without opening their profile. This sends extra requests to Discord: keep a long delay.",
         default: false,
         onChange: () => restartAutoRefresh()
     },
     refreshDelay: {
-        type: OptionType.NUMBER,
-        description: "Seconds to wait between two background profile loads (minimum 60)",
-        default: 120,
+        type: OptionType.SELECT,
+        displayName: "Refresh delay",
+        description: "Time between two background profile loads.",
+        options: REFRESH_DELAYS.map(option => ({ ...option, default: option.value === DEFAULT_REFRESH_DELAY })),
+        disabled() {
+            return !this.store.autoRefresh;
+        },
         onChange: () => restartAutoRefresh()
     },
 
-    // Friends whose changes are ignored, managed from the user context menu
-    ignored: {
+    // Managed by the components above, hidden from the generic settings list
+    friends: {
         type: OptionType.CUSTOM,
-        default: [] as string[]
-    }
-}, {
-    refreshDelay: {
-        isValid(value) {
-            return (Number.isFinite(value) && value >= 60) || "Must be a number of at least 60 seconds";
-        }
+        default: {} as Record<string, FriendConfig>
+    },
+    defaultConfig: {
+        type: OptionType.CUSTOM,
+        default: { ...DEFAULT_FRIEND_CONFIG } as FriendConfig
+    },
+    /** Time of the newest change shown to the user, for the "new" marker of the top bar button */
+    lastSeen: {
+        type: OptionType.CUSTOM,
+        default: 0
     }
 });
 
-const TRACK_SETTINGS: Record<Field, keyof typeof settings.store> = {
-    username: "trackUsername",
-    globalName: "trackGlobalName",
-    pronouns: "trackPronouns",
-    bio: "trackBio",
-    avatar: "trackAvatar",
-    banner: "trackBanner",
-    colors: "trackColors"
-};
-
-export function isTracked(field: Field) {
-    return settings.store[TRACK_SETTINGS[field]] !== false;
+/** A friend's own settings, or the default ones if they were never changed */
+export function getFriendConfig(userId: string): FriendConfig {
+    return settings.store.friends[userId] ?? settings.store.defaultConfig;
 }
 
-export function isIgnored(userId: string) {
-    return settings.store.ignored.includes(userId);
+export function hasOwnConfig(userId: string) {
+    return settings.store.friends[userId] != null;
 }
 
-export function toggleIgnored(userId: string) {
-    const { ignored } = settings.store;
-    settings.store.ignored = ignored.includes(userId)
-        ? ignored.filter(id => id !== userId)
-        : [...ignored, userId];
+export function updateFriendConfig(userId: string, patch: Partial<FriendConfig>) {
+    // Replace the whole object so the change is written to disk once
+    settings.store.friends[userId] = { ...DEFAULT_FRIEND_CONFIG, ...getFriendConfig(userId), ...patch };
+}
+
+export function resetFriendConfig(userId: string) {
+    delete settings.store.friends[userId];
+}
+
+export function isTracked(userId: string, field: Field) {
+    const config = getFriendConfig(userId);
+    return !config.disabled && config[field] !== false;
+}
+
+export function shouldNotify(userId: string) {
+    const config = getFriendConfig(userId);
+    return settings.store.notify && !config.disabled && config.notify !== false;
 }
 
 /** Delay between two background profile loads, in milliseconds */
 export function getRefreshDelayMs() {
     const seconds = Number(settings.store.refreshDelay);
-    return (Number.isFinite(seconds) && seconds >= 60 ? seconds : 120) * 1000;
+    return (Number.isFinite(seconds) && seconds >= 60 ? seconds : DEFAULT_REFRESH_DELAY) * 1000;
 }
