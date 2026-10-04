@@ -7,7 +7,7 @@
 import * as DataStore from "@api/DataStore";
 import { showNotification } from "@api/Notifications";
 import { Logger } from "@utils/Logger";
-import type { User } from "@vencord/discord-types";
+import type { FluxStore, User } from "@vencord/discord-types";
 import { Constants, FluxDispatcher, RelationshipStore, RestAPI, UserProfileStore, UserStore } from "@webpack/common";
 
 import { DATASTORE_PREFIX, Field, FIELD_LABELS, FIELDS, IMAGE_FIELDS, PLUGIN_NAME, PROFILE_FIELDS, Snapshot } from "./constants";
@@ -22,6 +22,8 @@ const SNAPSHOTS_KEY = `${DATASTORE_PREFIX}snapshots`;
 const SCAN_DELAY = 1000;
 /** Pause of the background refresh after Discord answered "too many requests" without saying how long to wait */
 const RATE_LIMIT_PAUSE = 10 * 60 * 1000;
+/** Wait before the first background profile load, so it does not add to Discord's own startup requests */
+const FIRST_REFRESH_DELAY = 30 * 1000;
 
 // Last known profile of every friend, kept across restarts so changes made while Discord was closed are noticed too
 let snapshots: Record<string, Snapshot> = {};
@@ -36,13 +38,13 @@ const hex = (color: number) => "#" + color.toString(16).padStart(6, "0");
 function readSnapshot(userId: string): Snapshot {
     const snapshot: Snapshot = {};
 
-    // Basic user data: Discord keeps it up to date live (friend list, presences, servers in common)
+    // Basic user data: Discord keeps it up to date live (friend list, presences, messages, servers in common).
+    // The banner is not read here: the user objects that come with messages and presences often have no banner.
     const user = UserStore.getUser(userId);
     if (user) {
         if (typeof user.username === "string") snapshot.username = user.username;
         if (user.globalName !== undefined) snapshot.globalName = user.globalName ?? "";
         if (user.avatar !== undefined) snapshot.avatar = user.avatar ?? "";
-        if (user.banner !== undefined) snapshot.banner = user.banner ?? "";
     }
 
     // Full profile: only present once the profile was loaded (opened by you, or by the background refresh)
@@ -129,39 +131,67 @@ function saveSnapshots() {
     }, 5000);
 }
 
+/** Friends, plus yourself when "Track my own profile" is on */
+function getWatchedIds() {
+    const ids = [...RelationshipStore.getFriendIDs()];
+    const me = UserStore.getCurrentUser()?.id;
+    if (settings.store.trackSelf && me && !ids.includes(me)) ids.push(me);
+    return ids;
+}
+
+function compare(userId: string): Change[] | null {
+    const current = readSnapshot(userId);
+    const previous = snapshots[userId];
+    const changes: Change[] = [];
+    let updated = false;
+
+    for (const field of FIELDS) {
+        const newValue = current[field];
+        if (newValue === undefined) continue;
+
+        const oldValue = previous?.[field];
+        if (oldValue === newValue) continue;
+
+        updated = true;
+        // The first value we ever see is only remembered, it is not a change.
+        // Untracked fields are remembered too, so turning them back on does not report an old change.
+        if (oldValue !== undefined && isTracked(userId, field)) changes.push({ field, oldValue, newValue });
+    }
+
+    if (!updated) return null;
+    snapshots[userId] = { ...previous, ...current };
+    return changes;
+}
+
 function scan() {
     scanTimer = null;
     if (!running || !snapshotsLoaded) return;
 
+    const ids = getWatchedIds();
     let dirty = false;
     const changed: [string, Change[]][] = [];
-    for (const userId of RelationshipStore.getFriendIDs()) {
-        const current = readSnapshot(userId);
-        const previous = snapshots[userId];
-        const changes: Change[] = [];
-        let updated = false;
 
-        for (const field of FIELDS) {
-            const newValue = current[field];
-            if (newValue === undefined) continue;
-
-            const oldValue = previous?.[field];
-            if (oldValue === newValue) continue;
-
-            updated = true;
-            // The first value we ever see is only remembered, it is not a change.
-            // Untracked fields are remembered too, so turning them back on does not report an old change.
-            if (oldValue !== undefined && isTracked(userId, field)) changes.push({ field, oldValue, newValue });
+    for (const userId of ids) {
+        try {
+            const changes = compare(userId);
+            if (!changes) continue;
+            dirty = true;
+            if (changes.length) changed.push([userId, changes]);
+        } catch (e) {
+            logger.error("Failed to compare a profile", userId, e);
         }
-
-        if (!updated) continue;
-        snapshots[userId] = { ...previous, ...current };
-        dirty = true;
-        if (changes.length) changed.push([userId, changes]);
     }
 
     if (dirty) saveSnapshots();
-    if (changed.length) report(changed);
+    if (changed.length) {
+        try {
+            report(changed);
+        } catch (e) {
+            logger.error("Failed to report profile changes", e);
+        }
+    }
+
+    setStatus({ watched: ids.length, lastCheck: Date.now() });
 }
 
 /** Asks for a comparison of every friend's profile with the last known one */
@@ -210,6 +240,7 @@ async function refreshProfile(userId: string) {
 function scheduleRefresh(delay: number) {
     if (refreshTimer) clearTimeout(refreshTimer);
     refreshTimer = setTimeout(refreshTick, delay);
+    setStatus({ nextRefresh: Date.now() + delay });
 }
 
 async function refreshTick() {
@@ -222,6 +253,7 @@ async function refreshTick() {
     if (userId) {
         try {
             await refreshProfile(userId);
+            setStatus({ profilesLoaded: status.profilesLoaded + 1 });
         } catch (e: any) {
             if (e?.status === 429) {
                 const retryAfter = Number(e.body?.retry_after) * 1000;
@@ -241,13 +273,75 @@ async function refreshTick() {
 export function restartAutoRefresh() {
     if (refreshTimer) clearTimeout(refreshTimer);
     refreshTimer = null;
-    if (running && settings.store.autoRefresh) scheduleRefresh(getRefreshDelayMs());
+    setStatus({ nextRefresh: 0 });
+    // The first profile is loaded shortly after starting, then one every "Refresh delay"
+    if (running && settings.store.autoRefresh) scheduleRefresh(FIRST_REFRESH_DELAY);
+}
+
+// ---- Status shown in the plugin settings ----
+
+export interface TrackerStatus {
+    running: boolean;
+    /** Number of profiles compared by the last check */
+    watched: number;
+    lastCheck: number;
+    /** Profiles loaded by the background refresh since Discord started */
+    profilesLoaded: number;
+    /** Time of the next background profile load, 0 when the background refresh is off */
+    nextRefresh: number;
+    error: string | null;
+}
+
+let status: TrackerStatus = { running: false, watched: 0, lastCheck: 0, profilesLoaded: 0, nextRefresh: 0, error: null };
+const statusListeners = new Set<() => void>();
+
+function setStatus(patch: Partial<TrackerStatus>) {
+    status = { ...status, ...patch };
+    for (const listener of statusListeners) listener();
+}
+
+export function getStatus() {
+    return status;
+}
+
+export function subscribeStatus(listener: () => void) {
+    statusListeners.add(listener);
+    return () => void statusListeners.delete(listener);
 }
 
 // ---- Lifecycle ----
 
 const onStoreChange = () => scheduleScan();
-const STORES = [UserStore, UserProfileStore, RelationshipStore];
+/** Stores whose changes trigger a check. Kept to unsubscribe from exactly the same ones. */
+let subscribedStores: FluxStore[] = [];
+let subscribeTimer: ReturnType<typeof setTimeout> | null = null;
+
+function unsubscribeStores() {
+    for (const store of subscribedStores) store.removeChangeListener(onStoreChange);
+    subscribedStores = [];
+}
+
+function subscribeStores() {
+    subscribeTimer = null;
+    if (!running) return;
+
+    // Read here and not when the file is loaded: Vencord only finds Discord's stores after the plugins are loaded
+    const stores = [UserStore, UserProfileStore, RelationshipStore];
+    if (stores.some(store => store == null)) {
+        // Should not happen once Discord is connected, try again shortly
+        setStatus({ error: "Waiting for Discord's data..." });
+        subscribeTimer = setTimeout(subscribeStores, 2000);
+        return;
+    }
+
+    unsubscribeStores();
+    for (const store of stores) store.addChangeListener(onStoreChange);
+    subscribedStores = stores;
+
+    setStatus({ running: true, error: null });
+    scheduleScan();
+    restartAutoRefresh();
+}
 
 export async function startTracker() {
     running = true;
@@ -259,21 +353,25 @@ export async function startTracker() {
         logger.error("Failed to load the profile snapshots", e);
     }
     snapshotsLoaded = true;
-    if (!running) return;
 
-    for (const store of STORES) store.addChangeListener(onStoreChange);
-    scheduleScan();
-    restartAutoRefresh();
+    try {
+        subscribeStores();
+    } catch (e) {
+        logger.error("Failed to start tracking", e);
+        setStatus({ running: false, error: String(e instanceof Error ? e.message : e) });
+    }
 }
 
 export function stopTracker() {
     running = false;
-    for (const store of STORES) store.removeChangeListener(onStoreChange);
+    unsubscribeStores();
 
+    if (subscribeTimer) clearTimeout(subscribeTimer);
     if (scanTimer) clearTimeout(scanTimer);
     if (refreshTimer) clearTimeout(refreshTimer);
-    scanTimer = refreshTimer = null;
+    subscribeTimer = scanTimer = refreshTimer = null;
     refreshQueue = [];
+    setStatus({ running: false, nextRefresh: 0 });
 
     // Save right away what was waiting to be saved
     if (saveTimer) {

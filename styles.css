@@ -10,13 +10,44 @@
 /* Settings */
 .vc-profilechanges-history-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 8px;
     padding: 12px 16px;
     border-radius: 8px;
     background-color: var(--background-base-lower, var(--background-secondary));
+}
+
+.vc-profilechanges-history-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.vc-profilechanges-history-card-buttons {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.vc-profilechanges-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+.vc-profilechanges-status-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--status-danger, #f23f43);
+}
+
+.vc-profilechanges-status-dot.vc-profilechanges-status-ok {
+    background-color: var(--status-positive, #23a55a);
 }
 
 .vc-profilechanges-history-card p {

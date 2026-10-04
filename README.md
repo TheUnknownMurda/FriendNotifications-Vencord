@@ -20,6 +20,12 @@ A [Vencord](https://vencord.dev) user plugin that notifies you, and keeps a hist
 - Right-click a friend > **Profile tracking** to open their history, stop tracking them, turn their notifications off, or choose which changes to track for them.
 - In the plugin settings, **What to track** has a table with one row per friend and one column per kind of change (plus notifications). The **Default settings** row applies to every friend you did not change, new friends included.
 
+## Checking that it works
+
+- The top of the plugin settings shows a status line: a green dot with "Watching N profiles, last check at ..." means the plugin is running. A red dot shows what went wrong.
+- **Test notification** shows what a notification looks like (it also tells you if Vencord's notifications are turned off or hidden).
+- Turn on **Track my own profile**, then change your display name: a notification should show up within a few seconds.
+
 ## What is detected, and when
 
 Discord does not tell clients about every profile edit, so not everything shows up instantly:

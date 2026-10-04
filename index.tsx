@@ -26,7 +26,7 @@ const UserContextMenuPatch: NavContextMenuPatchCallback = (children, { user }: {
     const update = (patch: Parameters<typeof updateFriendConfig>[1]) => updateFriendConfig(user.id, patch);
 
     children.push(
-        <Menu.MenuGroup>
+        <Menu.MenuGroup key="vc-profileupdate">
             <Menu.MenuItem id="vc-profileupdate" label="Profile tracking">
                 <Menu.MenuGroup>
                     <Menu.MenuItem

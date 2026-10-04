@@ -9,7 +9,7 @@ import { OptionType } from "@utils/types";
 
 import { DEFAULT_FRIEND_CONFIG, DEFAULT_REFRESH_DELAY, Field, FriendConfig, REFRESH_DELAYS } from "./constants";
 import { FriendsSection, HistorySection } from "./SettingsSections";
-import { restartAutoRefresh } from "./tracker";
+import { restartAutoRefresh, scheduleScan } from "./tracker";
 
 export const settings = definePluginSettings({
     history: {
@@ -27,6 +27,13 @@ export const settings = definePluginSettings({
         displayName: "Top bar button",
         description: "Show a button at the top of Discord to open the history.",
         default: true
+    },
+    trackSelf: {
+        type: OptionType.BOOLEAN,
+        displayName: "Track my own profile",
+        description: "Also track your own profile changes. Handy to check that the plugin works: change your display name and a notification shows up.",
+        default: false,
+        onChange: () => scheduleScan()
     },
     friendList: {
         type: OptionType.COMPONENT,
