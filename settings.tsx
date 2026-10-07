@@ -81,8 +81,10 @@ export const settings = definePluginSettings({
     }
 }, {
     checkInterval: {
+        // Receives the text typed in the field, not a number
         isValid(value) {
-            return (Number.isFinite(value) && value >= 5) || "Must be a number of at least 5 seconds";
+            const seconds = Number(value);
+            return (Number.isFinite(seconds) && seconds >= 5) || "Must be a number of at least 5 seconds";
         }
     }
 });
