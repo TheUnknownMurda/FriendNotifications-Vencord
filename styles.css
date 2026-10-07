@@ -409,3 +409,121 @@
     padding: 16px 0;
     text-align: center;
 }
+
+/* Last seen: friends list label */
+.vc-friendnotif-lastseen-row-label {
+    align-self: center;
+    margin-right: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
+/* Last seen: settings */
+.vc-friendnotif-lastseen-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Last seen: one friend's connections */
+.vc-friendnotif-lastseen-sessions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 12px;
+}
+
+.vc-friendnotif-lastseen-session {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: var(--background-modifier-hover, rgb(128 128 128 / 8%));
+}
+
+.vc-friendnotif-lastseen-session-statuses {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.vc-friendnotif-lastseen-session-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.vc-friendnotif-lastseen-muted {
+    color: var(--text-muted);
+}
+
+.vc-friendnotif-lastseen-duration {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-default);
+}
+
+/* Connections shorter than a minute */
+.vc-friendnotif-lastseen-duration-short {
+    color: #f0b232;
+}
+
+.vc-friendnotif-lastseen-empty {
+    padding: 16px 0;
+    text-align: center;
+}
+
+/* Last seen: every friend */
+.vc-friendnotif-lastseen-all {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 12px;
+}
+
+.vc-friendnotif-lastseen-friends {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vc-friendnotif-lastseen-friend {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: var(--text-default);
+    cursor: pointer;
+}
+
+.vc-friendnotif-lastseen-friend:hover {
+    background-color: var(--background-modifier-hover, rgb(128 128 128 / 12%));
+}
+
+.vc-friendnotif-lastseen-friend .vc-friendnotif-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.vc-friendnotif-lastseen-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+}
+
+.vc-friendnotif-lastseen-friend-seen {
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
+.vc-friendnotif-lastseen-friend-online {
+    color: #23a55a;
+}

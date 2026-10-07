@@ -10,10 +10,11 @@ import { HeadingTertiary } from "@components/Heading";
 import { Paragraph } from "@components/Paragraph";
 import { Span } from "@components/Span";
 import { Switch } from "@components/Switch";
-import { React, showToast, TextInput, Toasts, useEffect, useRef, useState } from "@webpack/common";
+import { React, showToast, TextInput, useEffect, useRef, useState } from "@webpack/common";
 
 import { DEFAULT_NOTIFICATION_STRINGS, NOTIFICATION_KINDS, NotificationKind, SoundKey } from "./constants";
 import { importBetterDiscordConfig } from "./importBD";
+import { LastSeenTools } from "./LastSeenUI";
 import { syncObservedWithRelationships } from "./observer";
 import { settings } from "./settings";
 import { fetchSoundFromUrl, getSoundConfig, playSound, removeSound, saveSound, setSoundMuted } from "./sounds";
@@ -138,9 +139,9 @@ function SoundRow({ soundKey, label, defaultLabel }: { soundKey: SoundKey; label
 
         try {
             await saveSound(soundKey, file, file.name);
-            showToast("Sound saved", Toasts.Type.SUCCESS);
+            showToast("Sound saved", "success");
         } catch (err) {
-            showToast(`Failed to save the sound: ${err instanceof Error ? err.message : err}`, Toasts.Type.FAILURE);
+            showToast(`Failed to save the sound: ${err instanceof Error ? err.message : err}`, "failure");
         }
     }
 
@@ -153,9 +154,9 @@ function SoundRow({ soundKey, label, defaultLabel }: { soundKey: SoundKey; label
             const { blob, name } = await fetchSoundFromUrl(trimmed);
             await saveSound(soundKey, blob, name);
             setUrl("");
-            showToast("Sound saved", Toasts.Type.SUCCESS);
+            showToast("Sound saved", "success");
         } catch (err) {
-            showToast(`Could not download the sound: ${err instanceof Error ? err.message : err}`, Toasts.Type.FAILURE);
+            showToast(`Could not download the sound: ${err instanceof Error ? err.message : err}`, "failure");
         } finally {
             setBusy(false);
         }
@@ -241,9 +242,9 @@ export function ToolsSection() {
         setBusy(true);
         try {
             const message = await importBetterDiscordConfig(JSON.parse(await file.text()));
-            showToast(message, Toasts.Type.SUCCESS);
+            showToast(message, "success");
         } catch (err) {
-            showToast(`Import failed: ${err instanceof Error ? err.message : err}`, Toasts.Type.FAILURE);
+            showToast(`Import failed: ${err instanceof Error ? err.message : err}`, "failure");
         } finally {
             setBusy(false);
         }
@@ -258,6 +259,8 @@ export function ToolsSection() {
             <div className={cl("tools-buttons")}>
                 <Button onClick={openTimelog}>Open timelog</Button>
             </div>
+
+            <LastSeenTools />
 
             <HeadingTertiary>Import from BetterDiscord</HeadingTertiary>
             <Paragraph>

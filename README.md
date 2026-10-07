@@ -3,7 +3,8 @@
 Portage pour **Vencord** du plugin BetterDiscord *FriendNotifications* de DevilBro
 (v2.1.6). Affiche une notification quand un ami — ou un utilisateur que vous
 choisissez d'observer — change de statut, se met à jouer, écouter, streamer,
-partager son écran, ou change son statut personnalisé.
+partager son écran, ou change son statut personnalisé. Enregistre aussi la
+**dernière connexion** de chaque ami.
 
 ![Toast notification](assets/toast.png)
 
@@ -39,6 +40,9 @@ change, with search and pagination.*
   réglages, messages, utilisateurs observés et sons.
 - Options : horodatage, silence en DnD, ouverture du DM (ou du salon vocal pour
   un partage d'écran) au clic, intervalle de vérification.
+- **Dernière connexion** de chaque ami (en ligne, absent ou ne pas déranger),
+  même s'il n'est apparu qu'une demi-seconde, avec l'historique de ses
+  connexions. Voir [Dernière connexion des amis](#dernière-connexion-des-amis).
 
 ## Installation
 
@@ -121,6 +125,7 @@ sont conservés.
   remplace le sélecteur de date BDFDB. Vide = format de votre langue.
 - **Journal** : conservé entre les redémarrages (la version BD ne gardait que
   la session en cours).
+- **Dernière connexion** : nouveauté de ce portage, absente de la version BD.
 - Le plugin `EditUsers` (noms/avatars modifiés) n'est pas pris en compte.
 
 ## Utilisation du tableau des utilisateurs
@@ -133,6 +138,54 @@ sont conservés.
 - Colonne **Log** : écrire ou non les changements de cet utilisateur dans le
   journal.
 
+## Dernière connexion des amis
+
+Le plugin enregistre quand chaque ami était connecté pour la dernière fois.
+En ligne, absent et ne pas déranger comptent tous comme « connecté ».
+
+- **Liste d'amis** : à droite d'un ami hors ligne, « Seen 3 h ago ». Survolez
+  le texte pour la date exacte.
+- **Clic droit sur un ami** (liste d'amis, MP, liste des membres, chat) : le
+  menu affiche « Last seen 3 h ago » ou « Online now ». Cliquez dessus pour
+  ouvrir son historique : chaque connexion avec son début, sa fin, sa durée,
+  les statuts utilisés et les appareils (desktop, mobile, web...). Les
+  connexions de moins d'une minute ont leur durée en jaune.
+- **Tous les amis** : *Paramètres → Vencord → Plugins → FriendNotifications*,
+  section Timelog, bouton *Open last seen* (ou le menu VencordToolbox). Les
+  amis connectés en premier, puis du plus récent au plus ancien, avec une
+  recherche.
+
+Contrairement aux notifications, qui comparent les statuts toutes les X
+secondes, cette partie lit chaque message de statut envoyé par Discord, un par
+un et dans l'ordre. Discord regroupe parfois plusieurs changements dans un même
+message : si un ami se connecte puis se déconnecte dans le même paquet, la
+connexion est quand même enregistrée. Par sécurité, le plugin compare aussi
+tout le monde avec les statuts affichés par Discord (au démarrage, à la
+reconnexion et après chaque changement).
+
+Tout est enregistré uniquement sur votre ordinateur (stockage local de Discord)
+et survit aux redémarrages. Rien n'est envoyé nulle part.
+
+Ce qu'aucun plugin ne peut voir :
+
+- **Quand votre Discord est fermé** (ou votre PC en veille, ou sans internet),
+  rien ne peut être enregistré. Au retour, une connexion terminée entre-temps
+  prend comme fin le dernier moment où le plugin l'a vue (à 15 secondes près),
+  et un ami déjà connecté au démarrage commence au moment où le plugin l'a vu.
+  Ces heures approximatives sont affichées avec un `~`.
+- **Un ami en Invisible** est exactement comme un ami hors ligne : Discord
+  n'envoie rien qui pourrait le révéler.
+- **Ce que les serveurs de Discord n'envoient pas** : une apparition si brève que
+  les serveurs de Discord ne la transmettent pas ne peut être vue par aucun
+  client.
+- L'historique commence quand le plugin est activé, et ne concerne que les amis
+  (pas les inconnus observés).
+
+Le texte dans la liste d'amis dépend du code interne de Discord (le même
+endroit que le plugin UserVoiceShow de Vencord). Si une mise à jour de Discord
+le casse, seul ce texte disparaît : l'enregistrement, le clic droit et la liste
+continuent de marcher.
+
 ## Structure du code
 
 | Fichier                | Rôle                                                       |
@@ -144,6 +197,8 @@ sont conservés.
 | `notifications.tsx`    | Envoi des toasts / notifications bureau                    |
 | `format.tsx`           | Placeholders, horodatage, noms de statut localisés         |
 | `timelog.tsx`          | Journal persistant (IndexedDB) + modale                    |
+| `lastSeen.ts`          | Dernière connexion : écoute des statuts, sessions, stockage |
+| `LastSeenUI.tsx`       | Dernière connexion : liste d'amis, clic droit, fenêtres    |
 | `sounds.ts`            | Stockage et lecture des sons                               |
 | `UserList.tsx`         | Tableau amis / inconnus / valeurs par défaut               |
 | `SettingsSections.tsx` | Sections de la page de réglages                            |

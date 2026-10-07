@@ -9,7 +9,7 @@ import { Paragraph } from "@components/Paragraph";
 import { Span } from "@components/Span";
 import { classes } from "@utils/misc";
 import type { User } from "@vencord/discord-types";
-import { PresenceStore, React, RelationshipStore, showToast, TextInput, Toasts, useEffect, useMemo, UserStore, UserUtils, useState, useStateFromStores } from "@webpack/common";
+import { PresenceStore, React, RelationshipStore, showToast, TextInput, useEffect, useMemo, UserStore, UserUtils, useState, useStateFromStores } from "@webpack/common";
 
 import { NotificationType, ObservedType, STATUS_COLUMN_LABELS, STATUS_KEYS, StatusKey, UserConfig } from "./constants";
 import { settings } from "./settings";
@@ -352,17 +352,17 @@ export function AddStranger() {
         const me = UserStore.getCurrentUser();
 
         if (!user) {
-            showToast("No user found. Enter a user ID, or the username of a user your client already knows", Toasts.Type.FAILURE);
+            showToast("No user found. Enter a user ID, or the username of a user your client already knows", "failure");
         } else if (user.id === me?.id) {
-            showToast("Are you seriously trying to observe yourself?", Toasts.Type.FAILURE);
+            showToast("Are you seriously trying to observe yourself?", "failure");
         } else if (RelationshipStore.isFriend(user.id)) {
-            showToast("This user is already your friend, configure them in the friend list", Toasts.Type.FAILURE);
+            showToast("This user is already your friend, configure them in the friend list", "failure");
         } else if (settings.store.observed.strangers[user.id]) {
-            showToast("This user is already observed as a stranger", Toasts.Type.FAILURE);
+            showToast("This user is already observed as a stranger", "failure");
         } else {
             settings.store.observed.strangers[user.id] = { ...settings.store.defaultUserConfig };
             setValue("");
-            showToast(`Now observing ${displayName(user, user.id)}`, Toasts.Type.SUCCESS);
+            showToast(`Now observing ${displayName(user, user.id)}`, "success");
         }
     }
 
