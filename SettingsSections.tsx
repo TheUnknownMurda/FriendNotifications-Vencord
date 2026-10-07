@@ -14,6 +14,7 @@ import { React, showToast, TextInput, useEffect, useRef, useState } from "@webpa
 
 import { DEFAULT_NOTIFICATION_STRINGS, NOTIFICATION_KINDS, NotificationKind, SoundKey } from "./constants";
 import { importBetterDiscordConfig } from "./importBD";
+import { LastSeenTools } from "./LastSeenUI";
 import { syncObservedWithRelationships } from "./observer";
 import { settings } from "./settings";
 import { fetchSoundFromUrl, getSoundConfig, playSound, removeSound, saveSound, setSoundMuted } from "./sounds";
@@ -258,6 +259,8 @@ export function ToolsSection() {
             <div className={cl("tools-buttons")}>
                 <Button onClick={openTimelog}>Open timelog</Button>
             </div>
+
+            <LastSeenTools />
 
             <HeadingTertiary>Import from BetterDiscord</HeadingTertiary>
             <Paragraph>

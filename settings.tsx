@@ -44,6 +44,22 @@ export const settings = definePluginSettings({
         placeholder: "e.g. DD/MM/YYYY HH:mm:ss",
         default: ""
     },
+    lastSeenFriendsList: {
+        type: OptionType.BOOLEAN,
+        description: "Shows in the friends list when each offline friend was last connected",
+        default: true
+    },
+    lastSeenHistorySize: {
+        type: OptionType.SELECT,
+        description: "Number of connections kept for each friend in the last seen history",
+        options: [
+            { label: "20", value: 20 },
+            { label: "50", value: 50 },
+            { label: "100", value: 100, default: true },
+            { label: "300", value: 300 },
+            { label: "1000", value: 1000 }
+        ]
+    },
 
     users: {
         type: OptionType.COMPONENT,
